@@ -1,0 +1,37 @@
+# Push a tag like v1.0.0 and this builds EverlookDBMail-v1.0.0-forever.zip and a GitHub release, plus a copy named EverlookDBMail.zip
+# so https://github.com/quikmn/EverlookDBMail/releases/latest/download/EverlookDBMail.zip always gets the newest. WowUp uses release.json; the same zip goes to CurseForge.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: BigWigsMods/packager@v2
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Same zip under a fixed name (direct download link on everlookdb.com)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp .release/EverlookDBMail-${GITHUB_REF_NAME}-forever.zip .release/EverlookDBMail.zip
+          gh release upload "$GITHUB_REF_NAME" .release/EverlookDBMail.zip --clobber
+      - name: Release notes from CHANGELOG.md (GitHub release page)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash .github/release-notes.sh "$GITHUB_REF_NAME" > .release/notes.md
+          gh release edit "$GITHUB_REF_NAME" --notes-file .release/notes.md
+      - name: Upload to CurseForge (project id: CF_PROJECT_ID, a placeholder until the CurseForge project exists)
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        run: bash .github/curseforge-upload.sh CF_PROJECT_ID .release/EverlookDBMail-${GITHUB_REF_NAME}-forever.zip EverlookDBMail.toc

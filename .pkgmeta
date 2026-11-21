@@ -1,0 +1,7 @@
+package-as: EverlookDBMail
+
+ignore:
+  - README.md
+  - tests
+  - .github
+  - curseforge

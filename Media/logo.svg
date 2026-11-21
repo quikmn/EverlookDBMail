@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs><radialGradient id="bg" cx=".5" cy=".38" r=".75"><stop offset="0" stop-color="#13223F"/><stop offset="1" stop-color="#070D1A"/></radialGradient>
+<linearGradient id="env" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6DB8F7"/><stop offset="1" stop-color="#3B7BD6"/></linearGradient>
+<linearGradient id="flap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E62BE"/><stop offset="1" stop-color="#4A8BE0"/></linearGradient>
+<linearGradient id="au" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3CC66"/><stop offset="1" stop-color="#C9952E"/></linearGradient></defs>
+<rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/><rect x="17" y="17" width="478" height="478" rx="111" fill="none" stroke="#2A3F66" stroke-width="2"/>
+<g transform="translate(0 -10)">
+<rect x="96" y="150" width="300" height="210" rx="22" fill="url(#env)"/>
+<path d="M96 186 L246 288 L396 186 L396 172 Q396 150 374 150 L118 150 Q96 150 96 172 Z" fill="url(#flap)"/>
+<path d="M104 166 L246 268 L388 166" fill="none" stroke="#9AD0FF" stroke-opacity=".7" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M110 348 L206 262 M382 348 L286 262" stroke="#2A57AE" stroke-width="8" stroke-linecap="round"/>
+</g>
+<circle cx="372" cy="372" r="84" fill="#0A1222"/><circle cx="372" cy="372" r="68" fill="url(#au)"/><circle cx="372" cy="372" r="68" fill="none" stroke="#8A6420" stroke-width="5"/>
+<path d="M340 372 L364 396 L406 350" fill="none" stroke="#0A1222" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

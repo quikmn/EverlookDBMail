@@ -1,0 +1,16 @@
+## Interface: 16001
+## Title: EverlookDB Mail
+## Notes: /email: Open all, shift-click a mail to take it all, a tag on every mail (sold, expired, won, from your alt...), the inbox's totals, and recent recipients and alts when you send.
+## Author: quikmn
+## X-License: GPL-3.0
+## Version: 0.1.0
+## SavedVariables: EverlookMailDB
+## OptionalDeps: EverlookDBAuctions
+## IconTexture: Interface\AddOns\EverlookDBMail\Media\icon
+
+Libs\LibStub\LibStub.lua
+Libs\EverlookUI\EverlookUI.lua
+MailClassify.lua
+EverlookDBMail.lua
+Inbox.lua
+Send.lua

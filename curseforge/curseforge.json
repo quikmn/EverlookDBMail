@@ -1,0 +1,16 @@
+{
+  "projectId": "CF_PROJECT_ID",
+  "name": "EverlookDB Mail",
+  "releaseType": "release",
+  "relations": [],
+  "categories": {
+    "primary": "Mail",
+    "additional": [
+      "Auction & Economy"
+    ]
+  },
+  "links": {
+    "Github": "https://github.com/quikmn/EverlookDBMail"
+  },
+  "syncOnRelease": false
+}
