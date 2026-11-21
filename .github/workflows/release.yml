@@ -31,7 +31,7 @@ jobs:
         run: |
           bash .github/release-notes.sh "$GITHUB_REF_NAME" > .release/notes.md
           gh release edit "$GITHUB_REF_NAME" --notes-file .release/notes.md
-      - name: Upload to CurseForge (project id: CF_PROJECT_ID, a placeholder until the CurseForge project exists)
+      - name: Upload to CurseForge (project 1822205, WoW Forever)
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
-        run: bash .github/curseforge-upload.sh CF_PROJECT_ID .release/EverlookDBMail-${GITHUB_REF_NAME}-forever.zip EverlookDBMail.toc
+        run: bash .github/curseforge-upload.sh 1822205 .release/EverlookDBMail-${GITHUB_REF_NAME}-forever.zip EverlookDBMail.toc
