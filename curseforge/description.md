@@ -1,6 +1,6 @@
 # EverlookDB Mail
 
-WoW Forever (interface 16001). A simple mailbox helper: Open all, shift-click a mail to take all of it, a tag on every mail saying what it is, the inbox's totals, and your recent recipients and alts when you send. `/email` opens the settings (`/mail` too, when no other addon uses it).
+A simple mailbox helper for WoW Forever: Open all, shift-click a mail to take all of it, a tag on every mail saying what it is, the inbox's totals, and your recent recipients and alts when you send. `/email` opens the settings (`/mail` too, when no other addon uses it).
 
 ## At the mailbox
 
@@ -21,19 +21,7 @@ WoW Forever (interface 16001). A simple mailbox helper: Open all, shift-click a 
 
 ## With EverlookDB Auctions
 
-When EverlookDB Auctions is loaded, Mail hands it every mail it reads and every take, through Auctions' API (`EverlookDBAuctionsAPI.mail`, version 4). Its income ledger then ticks off auctions: a sale's money taken, an expired or cancelled auction's item back. Gold from your alts is a transfer there, not income. Auctions reads the mail itself too; each mail counts once. Each addon works on its own.
-
-Both carry the same mail classifier (`MailClassify.lua`, LibStub `EverlookMailClassify-1`); when both are loaded the newest copy is used.
-
-## For other addons
-
-`EverlookDBMailAPI` (read-only):
-
-- `version` (1)
-- `isAlt(name)`: true for your own characters on this realm
-- `alts()`: their names
-- `lastScan()`: the inbox as last read (copies): `{ index, sender, subject, money, cod, exp, items = { { slot, name, id, count, link } }, invoice, cat, item, count }`
-- `categories`: `{ ids = { "ah_sold", ... }, labels = { ah_sold = "AH sold", ... } }`
+When EverlookDB Auctions is loaded, its income ledger ticks off your auctions as you take your mail: a sale's money taken, an expired or cancelled auction's item back. Gold from your alts counts as a transfer, not income, and nothing is counted twice. Each addon also works on its own.
 
 ## Chat commands
 
@@ -42,13 +30,9 @@ Both carry the same mail classifier (`MailClassify.lua`, LibStub `EverlookMailCl
 - `/email alts`: your characters on this realm. `/email forget <name>`.
 - `/email <setting> <value>`, `/email get`, `/email status`, `/email version`, as in every EverlookDB addon.
 
-## Saved data
+## Your data
 
-`EverlookMailDB`: your settings, the recent recipients you sent mail to, and your characters' names, class and level per realm. Nothing is uploaded.
-
-## Tests
-
-`python -P tests/run.py` (Lua 5.1 through lupa, with `tests/wowmock.lua`).
+Your settings, recent recipients and your characters' names stay on your computer. Nothing is uploaded.
 
 ## Licence
 
