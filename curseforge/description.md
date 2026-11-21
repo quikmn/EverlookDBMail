@@ -46,10 +46,6 @@ Both carry the same mail classifier (`MailClassify.lua`, LibStub `EverlookMailCl
 
 `EverlookMailDB`: your settings, the recent recipients you sent mail to, and your characters' names, class and level per realm. Nothing is uploaded.
 
-## Clean room
-
-Postal (the classic mail addon) is "All Rights Reserved", so none of its code was read or used. EverlookDB Mail is written from the game's own mail API and Blizzard's mail frame.
-
 ## Tests
 
 `python -P tests/run.py` (Lua 5.1 through lupa, with `tests/wowmock.lua`).
