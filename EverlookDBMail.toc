@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: EverlookDB Mail
-## Notes: /email: Open all, shift-click a mail to take it all, a tag on every mail (sold, expired, won, from your alt...), the inbox's totals, and recent recipients and alts when you send.
+## Notes: /email: tick mails and open or return them, Open all, Shift-click to take a mail, a tag on every mail, and Tab completes names when you send.
 ## Author: quikmn
 ## X-License: GPL-3.0
 ## Version: 0.1.0

@@ -1,37 +1,88 @@
--- Sending: a list button beside the To: box with your recent recipients and your alts on this realm, names completed
--- as you type (from those two lists), and the postage with what the mail costs you in all. Recipients are remembered
--- when the game says the mail went (MAIL_SEND_SUCCESS). No bulk sending.
+-- Sending, inside Blizzard's send tab: Tab in To: takes the suggested name (the one highlighted in the box, else the
+-- one picked in the game's suggestion list), names complete as you type from your recent recipients, alts, friends
+-- and guild, a small arrow attached to the To: box lists them, a line under the postage says what the mail costs you in
+-- all when you send gold, and the gold becomes the subject when you leave it empty. Recipients are remembered when
+-- the game says the mail went (MAIL_SEND_SUCCESS). No bulk sending.
+--
+-- Hooks only (HookScript, hooksecurefunc). The game's own suggestion list is never written to: Tab reads which name it
+-- shows and clicks that name's button, the way Enter does. With another mail addon loaded (ns.rival) the To: parts and
+-- the subject step aside; the total and remembering recipients stay.
 local _, ns = ...
-local UI = LibStub("EverlookUI-1")
 local S = {}
 ns.send = S
 
 local function db() return ns.db() end
 local try = ns.try
+local function active() return db() ~= nil and not ns.rival() end
 
--- The names for the list and completion: recent first, then alts not already there. { { name, alt = bool } }
+local CLASS_HEX = setmetatable({}, { __index = function(t, class)
+  local c = RAID_CLASS_COLORS and class and RAID_CLASS_COLORS[class]
+  local v = c and c.colorStr or "ffc39bf2"
+  rawset(t, class or "?", v)
+  return v
+end })
+
+local function plainName(name)
+  name = ns.okv(name)
+  if type(name) ~= "string" or name == "" then return nil end
+  if type(Ambiguate) == "function" then
+    local ok, a = pcall(Ambiguate, name, "mail")
+    if ok and type(a) == "string" and a ~= "" then return a end
+  end
+  return ns.shortName(name)
+end
+
+function S.friends()
+  local out = {}
+  local F = C_FriendList
+  local n = F and F.GetNumFriends and tonumber((try(F.GetNumFriends))) or 0
+  for i = 1, n do
+    local info = try(F.GetFriendInfoByIndex, i)
+    local name = type(info) == "table" and plainName(info.name)
+    if name then out[#out + 1] = { name = name, online = info.connected and true or false, class = info.className } end
+  end
+  return out
+end
+
+function S.guild()
+  local out = {}
+  if not (type(IsInGuild) == "function" and try(IsInGuild)) then return out end
+  local n = tonumber((try(GetNumGuildMembers))) or 0
+  for i = 1, n do
+    local ok, name, _, _, level, _, _, _, _, online, _, class = pcall(GetGuildRosterInfo, i)
+    name = ok and plainName(name)
+    if name then out[#out + 1] = { name = name, level = ns.okv(level), online = ns.okv(online) and true or false, class = ns.okv(class) } end
+  end
+  table.sort(out, function(a, b)
+    if a.online ~= b.online then return a.online end
+    return a.name < b.name
+  end)
+  return out
+end
+
+-- The names for the list and completion, once each, in this order: recent, alts, friends, guild.
+-- { { name, from = "recent"|"alt"|"friend"|"guild", alt = bool, class, level, online } }
 function S.names()
   local out, seen = {}, {}
   local d = db()
   if not d then return out end
   local me = ns.me()
+  local function add(n, from)
+    local key = n.name:lower()
+    if seen[key] or n.name == me then return end
+    seen[key] = true
+    n.from = from
+    out[#out + 1] = n
+  end
   if d.send.recent then
-    for _, r in ipairs(d.recent) do
-      local key = r.name:lower()
-      if not seen[key] and r.name ~= me then
-        seen[key] = true
-        out[#out + 1] = { name = r.name, alt = ns.isAlt(r.name), recent = true }
-      end
-    end
+    for _, r in ipairs(d.recent) do add({ name = r.name, alt = ns.isAlt(r.name) }, "recent") end
   end
   if d.send.alts then
-    for _, a in ipairs(ns.altList()) do
-      local key = a.name:lower()
-      if not seen[key] then
-        seen[key] = true
-        out[#out + 1] = { name = a.name, alt = true, class = a.class, level = a.level }
-      end
-    end
+    for _, a in ipairs(ns.altList()) do add({ name = a.name, alt = true, class = a.class, level = a.level }, "alt") end
+  end
+  if d.send.friends then
+    for _, f in ipairs(S.friends()) do add(f, "friend") end
+    for _, g in ipairs(S.guild()) do add(g, "guild") end
   end
   return out
 end
@@ -45,94 +96,127 @@ function S.complete(typed)
   end
 end
 
--- "Postage 30c · sending 5g · 5g 30c in all"
-function S.costText()
+---------------------------------------------------------------------------------------------------------------------
+-- Money: the total under the postage, and the gold as the subject
+
+local function sendCopper()
+  if SendMailMoney and MoneyInputFrame_GetCopper then return tonumber((try(MoneyInputFrame_GetCopper, SendMailMoney))) or 0 end
+  return 0
+end
+local function isCOD() return SendMailCODButton and SendMailCODButton.GetChecked and SendMailCODButton:GetChecked() and true or false end
+
+-- "5g 30s" without colours, for a subject
+function S.plainMoney(c)
+  c = math.floor(tonumber(c) or 0)
+  local g, s, k = math.floor(c / 10000), math.floor(c / 100) % 100, c % 100
+  local out = {}
+  if g > 0 then out[#out + 1] = g .. "g" end
+  if s > 0 then out[#out + 1] = s .. "s" end
+  if k > 0 then out[#out + 1] = k .. "c" end
+  return table.concat(out, " ")
+end
+
+-- "Total 5g 30c" when sending gold, "C.O.D.: they pay you 5g" for C.O.D., "" otherwise
+function S.totalText()
+  local send = sendCopper()
+  if send <= 0 then return "" end
+  if isCOD() then return "C.O.D.: they pay you " .. ns.money(send) end
   local postage = tonumber((try(GetSendMailPrice))) or 0
-  local send = 0
-  if SendMailMoney and MoneyInputFrame_GetCopper then send = tonumber((try(MoneyInputFrame_GetCopper, SendMailMoney))) or 0 end
-  local cod = SendMailCODButton and SendMailCODButton.GetChecked and SendMailCODButton:GetChecked()
-  local parts = { "Postage " .. ns.money(postage) }
-  if send > 0 and not cod then
-    parts[#parts + 1] = "sending " .. ns.money(send)
-    parts[#parts + 1] = ns.money(send + postage) .. " in all"
-  elseif send > 0 and cod then
-    parts[#parts + 1] = "C.O.D. " .. ns.money(send) .. " to you"
+  return "Total " .. ns.money(send + postage)
+end
+
+-- the gold as the subject while the subject is empty (or still ours)
+function S.wire()
+  local d = db()
+  local subj = rawget(_G, "SendMailSubjectEditBox")
+  if not (d and d.send.wire and active() and subj) then return end
+  local now = subj:GetText() or ""
+  if now ~= "" and now ~= S.wired then return end
+  local send = sendCopper()
+  local text = (send > 0 and not isCOD()) and S.plainMoney(send) or ""
+  if text ~= now then
+    subj:SetText(text)
+    if text ~= "" then S.wired = text else S.wired = nil end
   end
-  return table.concat(parts, "  \194\183  ")
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- The list
+-- The To: list
 
-local menu
-local function closeMenu() if menu then menu:Hide() end end
-
-local CLASS_HEX = setmetatable({}, { __index = function(t, class)
-  local c = RAID_CLASS_COLORS and class and RAID_CLASS_COLORS[class]
-  local v = c and c.colorStr or "ffc39bf2"
-  rawset(t, class or "?", v)
-  return v
-end })
-
-local function showMenu(anchor)
-  local T = ns.app.T
-  if not menu then
-    menu = CreateFrame("Frame", "EverlookMailRecipients", UIParent)
-    menu:SetFrameStrata("FULLSCREEN_DIALOG")
-    menu:SetClampedToScreen(true)
-    UI.WindowChrome(menu, T)
-    menu:EnableMouse(true)
-    menu.buttons = {}
-    menu.empty = UI.Text(menu, T.font, T.muted)
-    menu.empty:SetPoint("TOPLEFT", 10, -10)
-    menu.empty:SetWidth(200)
-    menu.empty:SetText("No names yet: whoever you send mail to is added here, and each of your characters when it logs in.")
-  end
-  local names = S.names()
-  for _, b in ipairs(menu.buttons) do b:Hide() end
-  local y = -8
-  local lastRecent = false
-  for i, n in ipairs(names) do
-    local b = menu.buttons[i]
-    if not b then
-      b = CreateFrame("Button", nil, menu)
-      b:SetHeight(20)
-      b.hl = b:CreateTexture(nil, "HIGHLIGHT")
-      b.hl:SetAllPoints()
-      b.hl:SetColorTexture(1, 1, 1, 0.08)
-      b.text = UI.Text(b, T.font, T.text)
-      b.text:SetPoint("LEFT", 8, 0)
-      b.note = UI.Text(b, T.font - 1, T.muted)
-      b.note:SetPoint("RIGHT", -8, 0)
-      b.note:SetJustifyH("RIGHT")
-      b:SetScript("OnClick", function(self)
-        if SendMailNameEditBox then
-          SendMailNameEditBox:SetText(self.name)
-          if SendMailSubjectEditBox then SendMailSubjectEditBox:SetFocus() end
-        end
-        closeMenu()
-      end)
-      menu.buttons[i] = b
+function S.menuItems()
+  local groups = { recent = {}, alt = {}, friend = {}, guild = {} }
+  for _, n in ipairs(S.names()) do table.insert(groups[n.from], n) end
+  local items = {}
+  local function pick(name)
+    return function()
+      if SendMailNameEditBox then
+        SendMailNameEditBox:SetText(name)
+        if SendMailSubjectEditBox then SendMailSubjectEditBox:SetFocus() end
+      end
     end
-    if lastRecent and not n.recent then y = y - 6 end -- a little gap between recent names and alts
-    lastRecent = n.recent
-    b:ClearAllPoints()
-    b:SetPoint("TOPLEFT", 4, y)
-    b:SetPoint("RIGHT", menu, "RIGHT", -4, 0)
-    b.name = n.name
-    b.text:SetText(n.alt and ("|c%s%s|r"):format(CLASS_HEX[n.class or "?"], n.name) or n.name)
-    b.note:SetText(n.alt and (n.level and ("your alt, " .. n.level) or "your alt") or "recent")
-    b:Show()
-    y = y - 20
   end
-  menu.empty:SetShown(#names == 0)
-  menu:SetSize(220, #names == 0 and 64 or (-y + 8))
-  menu:ClearAllPoints()
-  menu:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
-  menu:Show()
+  local function section(title, list, max, note)
+    if #list == 0 then return end
+    if #items > 0 then items[#items + 1] = { divider = true } end
+    items[#items + 1] = { title = title }
+    for i, n in ipairs(list) do
+      if i > max then break end
+      local text = (n.alt or n.class) and ("|c%s%s|r"):format(CLASS_HEX[n.class or "?"], n.name) or n.name
+      items[#items + 1] = { text = text, name = n.name, note = note(n), func = pick(n.name) }
+    end
+  end
+  section("Recent", groups.recent, 30, function(n) return n.alt and "your alt" or nil end)
+  section("Your alts", groups.alt, 30, function(n) return n.level and tostring(n.level) or nil end)
+  section("Friends", groups.friend, 20, function(n) return n.online and "online" or nil end)
+  section("Guild", groups.guild, 25, function(n) return n.online and "online" or nil end)
+  if #items == 0 then
+    items[1] = { title = "No names yet" }
+    items[2] = { text = "Whoever you send mail to shows up here, and your alts as they log in.", disabled = true, func = function() end }
+  end
+  return items
 end
-S.showMenu = showMenu
-S.menu = function() return menu end
+
+function S.showMenu()
+  if SendMailNameEditBox then return ns.menu(SendMailNameEditBox, S.menuItems()) end
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Tab in To:
+
+local function autoBox(box)
+  local ac = rawget(_G, "AutoCompleteBox")
+  if ac and ac:IsShown() and ac.parent == box then return ac end
+end
+
+-- After the game's own Tab handling (which only moves its list's highlight): take the suggestion.
+function S.onTab(box)
+  local d = db()
+  if not (d and d.send.tab and active()) or IsShiftKeyDown() then return end
+  local text = box:GetText() or ""
+  local cur = box.GetCursorPosition and tonumber(box:GetCursorPosition()) or #text
+  local ac = autoBox(box)
+  if cur < #text then
+    -- the name completed in the box (the highlighted rest): keep it
+    if box.HighlightText then box:HighlightText(#text, #text) end
+    if box.SetCursorPosition then box:SetCursorPosition(#text) end
+    if ac then ac:Hide() end
+    return "inline"
+  end
+  if ac then
+    -- the game moved its highlight one down when Tab was pressed: the one it showed before is the one to take
+    local n = tonumber(ac.numResults) or 0
+    local sel = tonumber(ac.selectedIndex) or 1
+    if n > 0 then
+      local prev = sel - 1
+      if prev < 1 then prev = n end
+      local b = _G["AutoCompleteButton" .. prev]
+      if b and b.nameInfo and type(AutoCompleteButton_OnClick) == "function" then
+        AutoCompleteButton_OnClick(b)
+        return "list"
+      end
+    end
+  end
+end
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Setting up the send tab (once, the first time the mailbox opens)
@@ -142,24 +226,35 @@ function S.build()
   if built or not SendMailNameEditBox then return end
   built = true
   local box = SendMailNameEditBox
-  local T = ns.app.T
-  local b = CreateFrame("Button", "EverlookMailRecipientsButton", box:GetParent() or box)
-  b:SetSize(20, 20)
-  b:SetPoint("LEFT", box, "RIGHT", 4, 0)
-  local tex = b:CreateTexture(nil, "ARTWORK")
-  tex:SetAllPoints()
-  UI.SetIcon(tex, "user")
-  tex:SetVertexColor(T.accent[1], T.accent[2], T.accent[3])
-  b:SetScript("OnClick", function(self)
-    if menu and menu:IsShown() then closeMenu() else showMenu(box) end
+  local parent = rawget(_G, "SendMailFrame") or box:GetParent() or box
+
+  -- the arrow attached to the To: box
+  local b = CreateFrame("Button", "EverlookMailToButton", parent)
+  b:SetSize(22, 22)
+  b:SetPoint("LEFT", box, "RIGHT", 1, 1)
+  b:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
+  b:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Down")
+  b:SetDisabledTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Disabled")
+  b:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+  b:SetScript("OnClick", function() S.showMenu() end)
+  b:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Recent, alts, friends and guild")
+    GameTooltip:AddLine("Click a name to put it in To:. In To:, Tab takes the suggested name.", 1, 1, 1, true)
+    GameTooltip:Show()
   end)
-  UI.Tooltip(b, "Recent recipients and your alts", "Click a name to put it in To:.")
+  b:SetScript("OnLeave", function() GameTooltip:Hide() end)
   S.button = b
-  local cost = (box:GetParent() or box):CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  cost:SetPoint("LEFT", b, "RIGHT", 6, 0)
-  S.cost = cost
+
+  -- under the game's "Postage" line
+  local total = parent:CreateFontString("EverlookMailSendTotal", "OVERLAY", "GameFontHighlightSmall")
+  local cost = rawget(_G, "SendMailCostMoneyFrame")
+  if cost then total:SetPoint("TOPRIGHT", cost, "BOTTOMRIGHT", 0, -1) else total:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -6, -48) end
+  total:SetJustifyH("RIGHT")
+  S.total = total
+
   box:HookScript("OnTextChanged", function(self, userInput)
-    if not (userInput and db() and db().send.complete) then return end
+    if not (userInput and active() and db().send.complete) then return end
     if S.completing then return end
     local typed = self:GetText() or ""
     local cursor = self.GetCursorPosition and self:GetCursorPosition() or #typed
@@ -173,18 +268,31 @@ function S.build()
       S.completing = nil
     end
   end)
-  box:HookScript("OnEditFocusLost", function() C_Timer.After(0.2, function()
-    if menu and menu:IsShown() and not menu:IsMouseOver() then closeMenu() end
-  end) end)
-  if SendMailFrame then
-    SendMailFrame:HookScript("OnHide", closeMenu)
+  box:HookScript("OnTabPressed", function(self) S.onTab(self) end)
+
+  -- the money boxes and the Send money / C.O.D. choice change the total and the subject
+  local function moneyChanged() S.refresh(); S.wire() end
+  for _, n in ipairs({ "SendMailMoneyGold", "SendMailMoneySilver", "SendMailMoneyCopper" }) do
+    local e = rawget(_G, n)
+    if e and e.HookScript then e:HookScript("OnTextChanged", moneyChanged) end
   end
+  for _, n in ipairs({ "SendMailSendMoneyButton", "SendMailCODButton" }) do
+    local e = rawget(_G, n)
+    if e and e.HookScript then e:HookScript("OnClick", moneyChanged) end
+  end
+  if parent.HookScript then parent:HookScript("OnHide", function() ns.closeMenu() end) end
   S.refresh()
 end
 
 function S.refresh()
-  if S.cost then S.cost:SetText(S.costText()) end
-  if S.button then S.button:SetShown(db() and (db().send.recent or db().send.alts) and true or false) end
+  local d = db()
+  if not d then return end
+  if S.total then
+    local t = d.send.total and S.totalText() or ""
+    S.total:SetText(t)
+    S.total:SetShown(t ~= "")
+  end
+  if S.button then S.button:SetShown(active() and (d.send.recent or d.send.alts or d.send.friends) and true or false) end
 end
 
 -- the name of the mail being sent, remembered when the game says it went
@@ -201,22 +309,17 @@ ev:SetScript("OnEvent", function(_, event)
   if not db() then return end
   if event == "MAIL_SHOW" then
     pcall(S.build)
+    S.refresh()
   elseif event == "MAIL_SEND_SUCCESS" then
     if sending then pcall(ns.noteRecipient, sending) end
     sending = nil
+    S.wired = nil
     S.refresh()
   elseif event == "MAIL_SEND_INFO_UPDATE" then
     S.refresh()
   elseif event == "MAIL_FAILED" then
     sending = nil
   elseif event == "MAIL_CLOSED" then
-    closeMenu()
+    ns.closeMenu()
   end
 end)
--- the money boxes change the total too
-if SendMailMoney then
-  for _, k in ipairs({ "gold", "silver", "copper" }) do
-    local e = SendMailMoney[k] or _G["SendMailMoney" .. k:sub(1, 1):upper() .. k:sub(2)]
-    if e and e.HookScript then e:HookScript("OnTextChanged", function() S.refresh() end) end
-  end
-end

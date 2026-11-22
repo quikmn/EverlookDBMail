@@ -1,1 +1,1 @@
-A simple mailbox helper for WoW Forever: Open all, shift-click a mail to take all of it, a tag on every mail saying what it is (sold, expired, won, from your alt...), the inbox totals, and recent recipients and alts when you send. /email
+A simple mailbox helper for WoW Forever, inside the game's mailbox: tick mails and open or return them, Open all, Shift-click to take a mail, a tag on every mail (sold, expired, won, from your alt...), and Tab completes names when you send. /email

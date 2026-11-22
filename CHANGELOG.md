@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+- Everything now sits inside the game's mailbox: no more panel beside it.
+- A tick box on every mail, with Select (all, none, auction house, sold, items back, alts, NPC, players...), Open selected and Return selected at the top of the inbox. Shift-click a tick box to tick a range, Ctrl-click for every mail from that sender.
+- Shift-click a mail takes everything in it, reliably now, and several in a row all get taken.
+- Ctrl-click a mail returns it to the sender (mail from players only).
+- The mail tags are smaller and sit next to the subject.
+- Open all sits where the game's button is. Shift-click it to take every mail whatever the settings say; right-click it for the settings. With full bags it still takes the gold, then goes on by itself when you make room. It says what it left behind, and goes on when more mail arrives.
+- One chat line when you close the mailbox: the gold you took.
+- Sending: Tab in To: takes the suggested name. Names also come from your friends and guild. The list sits on a small arrow next to To:, the total cost sits under the postage, and gold you send with an empty subject becomes the subject.
+- If another mail addon already does these things, EverlookDB Mail leaves them to it and says so once.
+
 ## v0.1.0 (2026-11-22)
 - First version. `/email` opens the settings (`/mail` too, when no other addon has it).
 - Every mail is read as soon as the mailbox opens: sender, subject, money, C.O.D., expiry, attachments and the auction house invoice. Each inbox row gets a tag: AH sold, AH expired, AH cancelled, AH won, AH outbid, Player, Your alt, NPC, C.O.D. or Other.

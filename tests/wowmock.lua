@@ -188,6 +188,25 @@ function impl:Play() end
 function impl:IsPlaying() return false end
 function impl:GetRegions() return end
 function impl:SetSmoothedValue(v) self.__value = v end
+-- check buttons, edit boxes, buttons and anchors (EverlookDB Mail's tests read these back)
+function impl:SetChecked(v) self.__checked = v and true or false end
+function impl:GetChecked() return self.__checked or false end
+function impl:SetCursorPosition(n) self.__cursor = n end
+function impl:GetCursorPosition() return self.__cursor or #(tostring(self.__text or "")) end
+function impl:SetFocus() MOCK.focus = self end
+function impl:ClearFocus() if MOCK.focus == self then MOCK.focus = nil end end
+function impl:HasFocus() return MOCK.focus == self end
+function impl:SetEnabled(v) self.__disabled = not v end
+function impl:Enable() self.__disabled = false end
+function impl:Disable() self.__disabled = true end
+function impl:IsEnabled() return not self.__disabled end
+function impl:SetPoint(...) self.__points[#self.__points + 1] = { ... } end
+function impl:ClearAllPoints() self.__points = {} end
+function impl:GetPoint(i)
+	local p = self.__points[i or 1]
+	if p then return unpack(p) end
+	return "CENTER", nil, "CENTER", 0, 0
+end
 
 Widget.__index = function(self, key)
 	local f = impl[key]
