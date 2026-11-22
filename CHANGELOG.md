@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.0 (2026-11-22)
 - Everything now sits inside the game's mailbox: no more panel beside it.
 - A tick box on every mail, with Select (all, none, auction house, sold, items back, alts, NPC, players...), Open selected and Return selected at the top of the inbox. Shift-click a tick box to tick a range, Ctrl-click for every mail from that sender.
 - Shift-click a mail takes everything in it, reliably now, and several in a row all get taken.
