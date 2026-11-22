@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.1.0 (2026-11-22)
 - First version. `/email` opens the settings (`/mail` too, when no other addon has it).
 - Every mail is read as soon as the mailbox opens: sender, subject, money, C.O.D., expiry, attachments and the auction house invoice. Each inbox row gets a tag: AH sold, AH expired, AH cancelled, AH won, AH outbid, Player, Your alt, NPC, C.O.D. or Other.
 - A summary beside the mailbox: how many mails of each kind, the money and items in them, and Open all.
