@@ -805,6 +805,13 @@ end)
 step("/email forget and /email alts", function()
   SlashCmdList.EVERLOOKMAIL("alts")
   check(last():find("Bankalt"), last())
+  local api = EverlookDBAuctionsAPI
+  EverlookDBAuctionsAPI = { version = 7, inventory = { gold = function()
+    return 70000, { { name = "Bankalt", money = 50000, mail = 20000 }, { name = "Tester", me = true, money = 1 } }
+  end } }
+  SlashCmdList.EVERLOOKMAIL("alts")
+  check(last():find("Bankalt (", 1, true), "gold with EverlookDB Auctions: " .. last())
+  EverlookDBAuctionsAPI = api
   SlashCmdList.EVERLOOKMAIL("forget bankalt")
   check(not ns.isAlt("Bankalt") and last():find("forgot"), last())
 end)

@@ -369,11 +369,29 @@ end, { "openall", "take" })
 app:Command("stop", "stop", "stop Open all", function()
   if ns.inbox then ns.inbox.stop("Stopped.") end
 end)
-app:Command("alts", "alts", "your characters on this realm", function()
-  local list = ns.altList()
-  if #list == 0 then app:Print("no other characters on this realm yet: each one is added when it logs in."); return end
-  local names = {}
-  for _, a in ipairs(list) do names[#names + 1] = a.name end
+-- "Mara (120g)": an alt's name with its gold, when EverlookDB Auctions (API v7) knows it
+function ns.altGold()
+  local api = rawget(_G, "EverlookDBAuctionsAPI")
+  local inv = api and (tonumber(api.version) or 0) >= 7 and api.inventory
+  local out = {}
+  if not inv or type(inv.gold) ~= "function" then return out end
+  local okG, _, list = pcall(inv.gold)
+  for _, e in ipairs(okG and type(list) == "table" and list or {}) do
+    if e.name and not e.me then out[e.name] = (e.money or 0) + (e.mail or 0) end
+  end
+  return out
+end
+local function altNames()
+  local gold, names = ns.altGold(), {}
+  for _, a in ipairs(ns.altList()) do
+    names[#names + 1] = gold[a.name] and ("%s (%s)"):format(a.name, ns.money(gold[a.name])) or a.name
+  end
+  return names
+end
+
+app:Command("alts", "alts", "your characters on this realm (with their gold, when EverlookDB Auctions knows it)", function()
+  local names = altNames()
+  if #names == 0 then app:Print("no other characters on this realm yet: each one is added when it logs in."); return end
   app:Print("your alts here: " .. table.concat(names, ", "))
 end)
 app:Command("forget", "forget <name>", "take a name off your alts and recent recipients", function(rest)
@@ -439,8 +457,7 @@ app:Section("sending", "Sending", function(stack)
   app:Widget(stack, "send.total")
   app:Widget(stack, "send.wire")
   UI.Stat(stack, "Your alts here", function()
-    local names = {}
-    for _, a in ipairs(ns.altList()) do names[#names + 1] = a.name end
+    local names = altNames()
     return #names > 0 and table.concat(names, ", ") or "none yet (each character is added when it logs in)"
   end)
   UI.Note(stack, "/email forget <name> takes a name off your recent recipients and alts.")
