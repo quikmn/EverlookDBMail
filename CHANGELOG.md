@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.0 (2026-11-24)
 - `/email alts` and the settings window show each alt's gold (with what waits in its mail) when EverlookDB Auctions is installed.
 
 ## v0.2.0 (2026-11-22)
