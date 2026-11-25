@@ -12,5 +12,6 @@
   "links": {
     "Github": "https://github.com/quikmn/EverlookDBMail"
   },
+  "screenshots": "screenshots",
   "syncOnRelease": false
 }
