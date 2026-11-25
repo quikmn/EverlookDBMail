@@ -741,13 +741,13 @@ step("Tab takes the game's suggestion (the highlighted one), not the next one", 
   EverlookMailDB.send.tab = true
 end)
 
-step("the total under the postage, and gold as the subject", function()
+step("the total above the money boxes (clear of the Subject box), and gold as the subject", function()
   MOCK.sendCopper = 50000
   SendMailSubjectEditBox:SetText("")
   SendMailMoneyGold:GetScript("OnTextChanged")(SendMailMoneyGold)
   check(EverlookMailSendTotal:IsShown() and EverlookMailSendTotal:GetText():find("Total 5"), "total " .. tostring(EverlookMailSendTotal:GetText()))
   local p, rel = EverlookMailSendTotal:GetPoint(1)
-  check(rel == SendMailCostMoneyFrame, "not under the postage")
+  check(rel == (rawget(_G, "SendMailMoney") or SendMailCostMoneyFrame), "not above the money boxes")
   check(SendMailSubjectEditBox:GetText() == "5g", "subject " .. SendMailSubjectEditBox:GetText())
   MOCK.sendCopper = 52000
   SendMailMoneyGold:GetScript("OnTextChanged")(SendMailMoneyGold)

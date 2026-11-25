@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Send Mail: the gold total now sits on the "Amount to send" line above the money boxes, so it no longer runs into the Postage line and the Subject box.
+
 ## v0.3.0 (2026-11-24)
 - `/email alts` and the settings window show each alt's gold (with what waits in its mail) when EverlookDB Auctions is installed.
 

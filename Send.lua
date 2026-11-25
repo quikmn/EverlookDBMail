@@ -246,10 +246,13 @@ function S.build()
   b:SetScript("OnLeave", function() GameTooltip:Hide() end)
   S.button = b
 
-  -- under the game's "Postage" line
+  -- on the "Amount to send:" line, right above the money boxes (under Postage it ran into the Subject box)
   local total = parent:CreateFontString("EverlookMailSendTotal", "OVERLAY", "GameFontHighlightSmall")
+  local money = rawget(_G, "SendMailMoney")
   local cost = rawget(_G, "SendMailCostMoneyFrame")
-  if cost then total:SetPoint("TOPRIGHT", cost, "BOTTOMRIGHT", 0, -1) else total:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -6, -48) end
+  if money then total:SetPoint("BOTTOMRIGHT", money, "TOPRIGHT", 0, 4)
+  elseif cost then total:SetPoint("TOPRIGHT", cost, "BOTTOMRIGHT", 0, -1)
+  else total:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -6, -48) end
   total:SetJustifyH("RIGHT")
   S.total = total
 
