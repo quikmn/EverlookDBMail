@@ -327,6 +327,7 @@ step("bare /email opens the settings window, with no errors; the new settings ar
     local def = ns.app:GetSetting(k)
     check(def and def.keywords and #def.keywords > 0, "no keywords for " .. k)
   end
+  check(not ns.app:GetSetting("send.total").label:find("postage"), "the total's label still says it sits under the postage")
 end)
 
 step("every mail is read and given its category; alts are your own characters", function()

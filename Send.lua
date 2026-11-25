@@ -1,6 +1,6 @@
 -- Sending, inside Blizzard's send tab: Tab in To: takes the suggested name (the one highlighted in the box, else the
 -- one picked in the game's suggestion list), names complete as you type from your recent recipients, alts, friends
--- and guild, a small arrow attached to the To: box lists them, a line under the postage says what the mail costs you in
+-- and guild, a small arrow attached to the To: box lists them, a line above the money boxes says what the mail costs you in
 -- all when you send gold, and the gold becomes the subject when you leave it empty. Recipients are remembered when
 -- the game says the mail went (MAIL_SEND_SUCCESS). No bulk sending.
 --
@@ -97,7 +97,7 @@ function S.complete(typed)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- Money: the total under the postage, and the gold as the subject
+-- Money: the total above the money boxes, and the gold as the subject
 
 local function sendCopper()
   if SendMailMoney and MoneyInputFrame_GetCopper then return tonumber((try(MoneyInputFrame_GetCopper, SendMailMoney))) or 0 end

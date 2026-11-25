@@ -354,7 +354,7 @@ setting({ key = "send.alts", type = "bool", label = "Your alts in the To: list",
   get = function() return db.send.alts end, set = function(v) db.send.alts = v end, default = true })
 setting({ key = "send.friends", type = "bool", label = "Friends and guild in the To: list", keywords = { "friends", "guild", "dropdown", "contacts" },
   get = function() return db.send.friends end, set = function(v) db.send.friends = v end, default = true })
-setting({ key = "send.total", type = "bool", label = "What the mail costs you in all, under the postage",
+setting({ key = "send.total", type = "bool", label = "What the mail costs you in all, above the money boxes",
   keywords = { "postage", "cost", "total", "price" },
   desc = "Shown when you send gold or set C.O.D.",
   get = function() return db.send.total end, set = function(v) db.send.total = v end, default = true })

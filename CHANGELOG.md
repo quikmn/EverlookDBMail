@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Settings: the gold total's switch says where the total now sits (above the money boxes).
+
 ## v0.3.1 (2026-11-26)
 - Send Mail: the gold total now sits on the "Amount to send" line above the money boxes, so it no longer runs into the Postage line and the Subject box.
 
