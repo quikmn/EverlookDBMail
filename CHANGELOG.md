@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.2 (2026-11-26)
 - Settings: the gold total's switch says where the total now sits (above the money boxes).
 
 ## v0.3.1 (2026-11-26)

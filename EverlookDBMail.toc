@@ -3,7 +3,7 @@
 ## Notes: /email: tick mails and open or return them, Open all, Shift-click to take a mail, a tag on every mail, and Tab completes names when you send.
 ## Author: quikmn
 ## X-License: GPL-3.0
-## Version: 0.3.1
+## Version: 0.3.2
 ## SavedVariables: EverlookMailDB
 ## OptionalDeps: EverlookDBAuctions
 ## IconTexture: Interface\AddOns\EverlookDBMail\Media\icon
